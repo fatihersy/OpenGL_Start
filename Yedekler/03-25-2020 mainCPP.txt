@@ -1,0 +1,228 @@
+#include <glfw3.h>
+#include <iostream>
+#include <SFML/Window.hpp>
+#include <SFML/Graphics.hpp>
+#include <ctime>
+#include <cstdlib>
+
+#define TITLE   "OYUN DENEMELERI"
+#define WIDTH       640
+#define HEIGHT      480
+
+static void error_callback(int error, const char* description);
+static void klavye_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+static void mouseBut_callback(GLFWwindow* window, int button, int action, int mods);
+static void mouseWheel_callback(GLFWwindow* window, double xoffset, double yoffset);
+
+GLdouble dZoomFactor = 1.0;
+
+using namespace std;
+
+int main(void)
+   {
+    GLFWwindow* window;
+    glfwSetErrorCallback(error_callback);
+
+    if (glfwInit()) {}
+    else {
+        cout << "GLFW -> HATA : Kutuphane baslatilamadi." << endl;
+        return -1;
+    }
+
+    glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+
+    window = glfwCreateWindow(WIDTH, HEIGHT, TITLE, NULL, NULL);
+    if (window)
+        cout << "GLFW -> OK : Pencere olusturuldu." << endl;
+    else {
+        cout << "GLFW -> HATA : Pencere olusturulamadi." << endl;
+        glfwTerminate();
+        return -1;
+    }
+
+    glfwMakeContextCurrent(window);
+    glfwSetKeyCallback(window, klavye_callback);
+    glfwSetMouseButtonCallback(window, mouseBut_callback);
+    glfwSetScrollCallback(window, mouseWheel_callback);
+
+    while (!glfwWindowShouldClose(window))
+    {
+
+        float ratio;
+        int width, height;
+
+        glfwGetFramebufferSize(window, &width, &height);
+        ratio = width / (float)height;
+
+        glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(-ratio * dZoomFactor, ratio * dZoomFactor, 1 * dZoomFactor, -1 * dZoomFactor, 1.0, -1.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        glBegin(GL_QUADS);
+        glColor3f(1.0f, 0.0f, 0.0f);
+        glVertex2f(-0.5f, 0.5f);
+        glVertex2f(0.5f, 0.5f);
+        glVertex2f(0.5f, -0.5f);
+        glVertex2f(-0.5f, -0.5f);
+        glEnd();
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glfwDestroyWindow(window);
+    return 0;
+}
+
+static void error_callback(int error, const char* description)
+{
+    cout << "GLFW -> HATA : " << description << endl;
+
+    if (error == GLFW_NOT_INITIALIZED) {
+        cout << "GLFW -> ERROR CODE : GLFW_NOT_INITIALIZED" << endl;
+        cout << "GLFW -> HATA SEBEBI : Glfw kutuphanesi baslatilmadi..." << endl << endl;
+    }
+    else if (error == GLFW_NO_CURRENT_CONTEXT) {
+        cout << "GLFW -> ERROR CODE : GLFW_NO_CURRENT_CONTEXT" << endl;
+        cout << "GLFW -> HATA SEBEBI : Varsayilan OpenGL icerigi bulunamadi..." << endl << endl;
+    }
+    else if (error == GLFW_INVALID_ENUM) {
+        cout << "GLFW -> ERROR CODE : GLFW_INVALID_ENUM" << endl;
+        cout << "GLFW -> HATA SEBEBI : Fonksiyon parametrelerinden bir numerator deger eksik girilmis..." << endl << endl;
+    }
+    else if (error == GLFW_INVALID_VALUE) {
+        cout << "GLFW -> ERROR CODE : GLFW_INVALID_VALUE" << endl;
+        cout << "GLFW -> HATA SEBEBI : Fonksiyon parametrelerinden bir deger eksik girilmis..." << endl << endl;
+    }
+    else if (error == GLFW_OUT_OF_MEMORY) {
+        cout << "GLFW -> ERROR CODE : GLFW_OUT_OF_MEMORY" << endl;
+        cout << "GLFW -> HATA SEBEBI : Bellekte yeterli alan yok..." << endl << endl;
+    }
+    else if (error == GLFW_API_UNAVAILABLE) {
+        cout << "GLFW -> ERROR CODE : GLFW_API_UNAVAILABLE" << endl;
+        cout << "GLFW -> HATA SEBEBI : Bilinmeyen bir api..." << endl << endl;
+    }
+    else if (error == GLFW_VERSION_UNAVAILABLE) {
+        cout << "GLFW -> ERROR CODE : GLFW_VERSION_UNAVAILABLE " << endl;
+        cout << "GLFW -> HATA SEBEBI : Sistem versiyonu bilinmiyor..." << endl << endl;
+    }
+    else if (error == GLFW_PLATFORM_ERROR) {
+        cout << "GLFW -> ERROR CODE : GLFW_PLATFORM_ERROR" << endl;
+        cout << "GLFW -> HATA SEBEBI : Bilinmeyen isletim sistemi..." << endl << endl;
+    }
+    else if (error == GLFW_FORMAT_UNAVAILABLE) {
+        cout << "GLFW -> ERROR CODE : GLFW_FORMAT_UNAVAILABLE" << endl;
+        cout << "GLFW -> HATA SEBEBI : Bilinmeyen format..." << endl << endl;
+    }
+}
+static void mouseWheel_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    cout << "X offset : " << xoffset << endl;
+    cout << "Y offset : " << yoffset << endl;
+
+    if (yoffset > 0)
+        dZoomFactor -= 0.05;
+    else
+        dZoomFactor += 0.05;
+
+    cout << "Zoom Faktoru : " << dZoomFactor << endl;
+}
+static void klavye_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+    // Esc tuşuna basıldığında, pencereyi kapat
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GL_TRUE);
+    else {
+        // Klavye tuş girdilerinin durumuna göre işlem yap.
+        switch (action) {
+            // Herhangi bir tuşa basıldığında...
+        case GLFW_PRESS:
+            // Modifier veya Normal Tuş kontrolü
+            switch (mods) {
+            case GLFW_MOD_ALT:
+                cout << "Klavye Girdisi -> Alt tusu basildi" << endl;
+                if (key == GLFW_KEY_F4) {
+                    cout << "Pencere Sonlandirildi..." << endl;
+                    glfwSetWindowShouldClose(window, GL_TRUE);
+                }
+                break;
+            case GLFW_MOD_CONTROL:
+                cout << "Klavye Girdisi -> Ctrl tusuna basildi" << endl;
+                // 'Ctrl + C' kopyalama kısayolu tuş ataması
+                if (key == GLFW_KEY_C)
+                    cout << "Islem -> Istenilen icerik kopyalanmistir." << endl;
+                else if (key == GLFW_KEY_V)
+                    cout << "Islem -> Istenilen icerik yapistirilmistir." << endl;
+                break;
+            case GLFW_MOD_SHIFT:
+                cout << "Klavye Girdisi -> Shift tusu birakildi" << endl;
+                break;
+            case GLFW_MOD_SUPER:
+                cout << "Klavye Girdisi -> Super tusu birakildi" << endl;
+                break;
+            default:
+                cout << "Klavye Girdisi -> Normal tus birakildi" << endl;
+                break;
+            }
+            break;
+
+            // Herhangi bir tuş bırakıldığında...
+        case GLFW_RELEASE:
+            // Modifier veya Normal Tuş kontrolü
+            switch (mods) {
+            case GLFW_MOD_ALT:
+                cout << "Klavye Girdisi -> Alt tusu birakildi" << endl;
+                break;
+            case GLFW_MOD_CONTROL:
+                cout << "Klavye Girdisi -> Ctrl tusu birakildi" << endl;
+                break;
+            case GLFW_MOD_SHIFT:
+                cout << "Klavye Girdisi -> Shift tusu birakildi" << endl;
+                break;
+            case GLFW_MOD_SUPER:
+                cout << "Klavye Girdisi -> Super tusu birakildi" << endl;
+                break;
+            default:
+                cout << "Klavye Girdisi -> Normal tus birakildi" << endl;
+                break;
+            }
+            break;
+
+            // Herhangi bir tuş basılı tutulduğunda...
+        case GLFW_REPEAT:
+            // Modifier veya Normal Tuş kontrolü
+            switch (mods) {
+            case GLFW_MOD_ALT:
+                cout << "Klavye Girdisi -> Alt tusu basili tutuluyor" << endl;
+                break;
+            case GLFW_MOD_CONTROL:
+                cout << "Klavye Girdisi -> Ctrl tusu basili tutuluyor" << endl;
+                break;
+            case GLFW_MOD_SHIFT:
+                cout << "Klavye Girdisi -> Shift tusu basili tutuluyor" << endl;
+                break;
+            case GLFW_MOD_SUPER:
+                cout << "Klavye Girdisi -> Super tusu basili tutuluyor" << endl;
+                break;
+            default:
+                cout << "Klavye Girdisi -> Normal tus basili tutuluyor" << endl;
+                break;
+            }
+            break;
+        }
+    }
+}
+static void mouseBut_callback(GLFWwindow* window, int button, int action, int mods)
+{
+    if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS)
+    {
+        double xpos, ypos;
+        //getting cursor position
+        glfwGetCursorPos(window, &xpos, &ypos);
+        cout << "Cursor Position at (" << xpos << " : " << ypos << endl;
+    }
+}
